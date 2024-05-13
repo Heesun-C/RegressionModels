@@ -1,0 +1,44 @@
+install.packages("devtools")
+devtools::install_github("jhudsl/collegeIncome")
+library(collegeIncome)
+data(college)
+
+
+devtools::install_github("jhudsl/matahari")
+library(matahari)
+
+dance_start(value = FALSE, contents = FALSE)
+
+#Investigate data
+head(college)
+
+#Make regressions
+fit1 <- lm(median ~ factor(major_category), college)
+fit1_1 <- lm(p75th ~ factor(major_category), college)
+fit1_2 <- lm(p25th ~ factor(major_category), college)
+fit2 <- lm(median ~ factor(major_category) + sample_size, college)
+fit3 <- lm(median ~ factor(major_category) + sample_size + perc_employed, college)
+
+#Plotting
+library(ggplot2)
+
+## Prepare a new dataframe with predictions
+college_predictions <- college
+college_predictions$predicted_median <- predict(fit1)
+
+## Box plot with points for fitted values
+ggplot(college, aes(x=factor(major_category), y=median)) +
+  geom_boxplot(alpha=0.7) +  # Boxplot to show the distribution
+  geom_point(data=college_predictions, aes(y=predicted_median), color="red", size=3) +  # Points for predictions
+  labs(title="Median Salary by Major Category",
+       x="Major Category", y="Median Salary") +
+  theme_minimal()
+
+
+#Evaluate the confounder whether they are needed.
+anova(fit1, fit2, fit3)
+
+#Investigate the models to determine the significance of correlation between income and major categories.
+summary(fit1)
+summary(fit1_1)
+summary(fit1_2)
